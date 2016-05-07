@@ -1,0 +1,11 @@
+!!!
+%html
+  %head
+    %title StackShare Recommendations
+  %body
+    %form{action: "/recommendations", method: "POST"}
+      %label{for: "tag"} Select a tag
+      %select{id: "tag", name: "tag"}
+        - @tags.each do |tag|
+          %option{value: tag["id"]}= tag["name"]
+      %input{type: "submit", value: "See recommendations!"}

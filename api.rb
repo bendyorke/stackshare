@@ -10,6 +10,11 @@ class Api
     @token = token
   end
 
+  def fetch_stacks tag_id
+    url = stacks_url tag_id: tag_id
+    res = JSON.parse open(url).read
+  end
+
   def load_tags
     path = ENV["TAGS_PATH"]
     if File.file? path
@@ -47,7 +52,7 @@ class Api
   end
 
   def stacks_url **params
-    build_url '/stacks/tags', params
+    build_url '/stacks/lookup', params
   end
 
   private
