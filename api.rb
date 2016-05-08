@@ -42,6 +42,10 @@ class Api
     layers
   end
 
+  def layers_url
+    build_url '/tools/layers'
+  end
+
   ## TOOLS ######################################################################
 
   def fetch_tools layer_id, page = 0
@@ -64,11 +68,19 @@ class Api
     end
   end
 
+  def tools_url **params
+    build_url '/tools/lookup', params
+  end
+
   ## STACKS ####################################################################
 
   def fetch_stacks tag_id
     url = stacks_url tag_id: tag_id
     res = JSON.parse open(url).read
+  end
+
+  def stacks_url **params
+    build_url '/stacks/lookup', params
   end
 
   ## TAGS ######################################################################
@@ -108,20 +120,8 @@ class Api
     tags
   end
 
-  def layers_url
-    build_url '/tools/layers'
-  end
-
-  def tools_url **params
-    build_url '/tools/lookup', params
-  end
-
   def tags_url **params
     build_url '/stacks/tags', params
-  end
-
-  def stacks_url **params
-    build_url '/stacks/lookup', params
   end
 
   private
