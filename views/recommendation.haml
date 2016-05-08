@@ -3,4 +3,16 @@
   %head
     %title StackShare Recommendations
   %body
-    %h1= @tag
+    %h1
+      For your
+      = @tag["name"]
+      business, StackShare recommends:
+    - @layers.each do |layer|
+      %h2= layer["name"]
+      %a{href: layer["recommendation"]["canonical_url"], target: "_blank", style: "text-decoration: none;"}
+        %img{src: layer["recommendation"]["image_url"], width: 30, height: 30, style: "display: inline-block; vertical-align: middle;"}
+        %h3{style: "display: inline-block; vertical-align: middle;"}= layer["recommendation"]["name"]
+
+    %div
+      %a{href: "/"}
+        %h4 Search for another business
