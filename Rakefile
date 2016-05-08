@@ -4,6 +4,15 @@ task :start => :dotenv do
   %x{shotgun}
 end
 
+task :test => :dotenv do
+  Dir.entries('.')
+    .select { |name| name.end_with? ".rb" }
+    .each do |filename|
+      puts "# " + filename
+      system "ruby #{filename}"
+    end
+end
+
 namespace :fetch do
   task :api => :dotenv do
     require_relative 'api.rb'

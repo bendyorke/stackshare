@@ -6,8 +6,19 @@ require 'yaml'
 class Api
   BASE = 'https://api.stackshare.io/v1/'
 
-  def initialize token
+  def initialize token = ''
     @token = token
+  end
+
+  ## LAYERS ####################################################################
+
+  def load_layers
+    path = ENV["LAYERS_PATH"]
+    if File.file? path
+      YAML.load(File.read(ENV["LAYERS_PATH"]))
+    else
+      []
+    end
   end
 
   def fetch_layers
@@ -21,15 +32,7 @@ class Api
     # we need to get the contents of the layers
     res.map do |layer|
       layer['tools'] = fetch_tools(layer['id'])
-    end
-  end
-
-  def load_layers
-    path = ENV["LAYERS_PATH"]
-    if File.file? path
-      YAML.load(File.read(ENV["LAYERS_PATH"]))
-    else
-      []
+      layer
     end
   end
 
@@ -39,26 +42,36 @@ class Api
     layers
   end
 
+  ## TOOLS ######################################################################
+
   def fetch_tools layer_id, page = 0
     url = tools_url layer_id: layer_id, page: page
-    res = JSON.parse open(url).read
-
-    # When preloading tools, DEBUG will be set to true
-    puts "Fetching tools for layer #{layer_id}, page #{page}..." if ENV['DEBUG']
-
-    # No headers are set to indicate it is the last page,
-    # so just assume that anything besides a 20 item array is the last page
-    unless res.class != Array || res.length < 20
-      res.concat fetch_tools(layer_id, page + 1)
+    begin
+      # When preloading tools, DEBUG will be set to true
+      print "Fetching tools for layer #{layer_id}, page #{page}..." if ENV['DEBUG']
+      res = JSON.parse open(url).read
+      print "[#{res.count}]\n" if ENV['DEBUG']
+    rescue => e
+      print "Fetched #{page} pages" if ENV['DEBUG']
     end
 
-    res
+    # No headers are set to indicate it is the last page,
+    # and pages contain variable amounts of entries.  Don't assume anything!
+    if res
+      res.concat fetch_tools(layer_id, page + 1)
+    else
+      []
+    end
   end
+
+  ## STACKS ####################################################################
 
   def fetch_stacks tag_id
     url = stacks_url tag_id: tag_id
     res = JSON.parse open(url).read
   end
+
+  ## TAGS ######################################################################
 
   def load_tags
     path = ENV["TAGS_PATH"]
@@ -71,19 +84,22 @@ class Api
 
   def fetch_tags page = 0
     url = tags_url page: page
-    res = JSON.parse open(url).read
-
-    # Since the pages are limited to 20 tags, it's much more efficient
-    # to prefetch them.  Fetch tasks will set DEBUG to true
-    puts "Fetching page #{page}..." if ENV['DEBUG']
-
-    # No headers are set to indicate it is the last page,
-    # so just assume that anything besides a 20 item array is the last page
-    unless res.class != Array || res.length < 20
-      res.concat fetch_tags(page + 1)
+    begin
+      # When preloading tags, DEBUG will be set to true
+      print "Fetching tags, page #{page}..." if ENV['DEBUG']
+      res = JSON.parse open(url).read
+      print "[#{res.count}]\n" if ENV['DEBUG']
+    rescue => e
+      print "Fetched #{page} pages" if ENV['DEBUG']
     end
 
-    res
+    # No headers are set to indicate it is the last page,
+    # and pages contain variable amounts of entries.  Don't assume anything!
+    if res
+      res.concat fetch_tags(layer_id, page + 1)
+    else
+      []
+    end
   end
 
   def save_tags
